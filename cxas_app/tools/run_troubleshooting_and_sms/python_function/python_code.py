@@ -169,6 +169,29 @@ FAKE_TROUBLESHOOTING_GUIDES: dict[str, dict[str, Any]] = {  # pragma: no cover
             "Espere hasta 10 minutos a que el decodificador descargue la guía interactiva de programación.",
         ],
     },
+    "tv_streaming": {
+        "diagnostic_purpose_en": "Resolve TV streaming app and playback issues",
+        "diagnostic_purpose_fr": "Résoudre les problèmes de diffusion et de l'application télé",
+        "diagnostic_purpose_es": "Resolver problemas de transmisión y de la aplicación de televisión",
+        "steps_en": [
+            "Check Wi-Fi or Ethernet internet connectivity on the streaming device, smart TV, or mobile phone.",
+            "Force-close the TV streaming app completely, wait 10 seconds, and relaunch it.",
+            "Clear the TV app cache in device settings and check for the latest app update.",
+            "Power-cycle the streaming box or smart TV for 15 seconds and sign back in.",
+        ],
+        "steps_fr": [
+            "Vérifiez la connectivité Internet Wi-Fi ou Ethernet sur l'appareil de diffusion, le téléviseur intelligent ou le téléphone mobile.",
+            "Fermez complètement l'application télé, attendez 10 secondes, puis relancez-la.",
+            "Videz le cache de l'application dans les paramètres de l'appareil et vérifiez les mises à jour.",
+            "Redémarrez le boîtier de diffusion ou le téléviseur intelligent pendant 15 secondes et reconnectez-vous.",
+        ],
+        "steps_es": [
+            "Verifique la conexión a Internet por Wi-Fi o Ethernet en el dispositivo de transmisión, Smart TV o teléfono móvil.",
+            "Fuerce el cierre de la aplicación de televisión, espere 10 segundos y vuelva a abrirla.",
+            "Borre la memoria caché de la aplicación en la configuración del dispositivo y busque actualizaciones.",
+            "Reinicie el dispositivo de transmisión o Smart TV durante 15 segundos y vuelva a iniciar sesión.",
+        ],
+    },
 }
 
 def resolve_locale(language: str | None) -> str:  # pragma: no cover
@@ -1551,7 +1574,20 @@ def lookup_account_impl(  # pragma: no cover
 
     _record_audit(state)
 
-    id_val = identifier if str(identifier or "").strip() else (phone_or_account if str(phone_or_account or "").strip() else kwargs.get("phone_or_account", ""))
+    id_val = ""
+    for _candidate in (
+        identifier,
+        phone_or_account,
+        kwargs.get("phone_or_account"),
+        kwargs.get("account_number"),
+        kwargs.get("ban"),
+        kwargs.get("account_id"),
+        kwargs.get("account"),
+        kwargs.get("phone_number"),
+    ):
+        if _candidate is not None and str(_candidate).strip():
+            id_val = _candidate
+            break
     name_val = str(full_name or kwargs.get("full_name") or kwargs.get("caller_name") or kwargs.get("name") or "").strip()
     email_val = str(email or kwargs.get("email") or "").strip()
     postal_val = str(postal_code or kwargs.get("postal_code") or kwargs.get("zip") or kwargs.get("zip_code") or "").strip()
@@ -2044,14 +2080,31 @@ def run_troubleshooting_and_sms_impl(  # pragma: no cover
     st = str(service_type or "internet").lower()
     tv_sub = str(tv_sub_type or state.get("tv_sub_type") or "").lower()
 
+    tv_error_codes = (
+        "error 101",
+        "erreur 101",
+        "code 101",
+        "error 014",
+        "erreur 014",
+        "error 013",
+        "error 005",
+    )
+    has_tv_error_code = any(ec in sym for ec in tv_error_codes)
+
     is_tv = (
         st in {"tv", "television", "video"}
         or str(state.get("lob", "")).lower() == "tv"
-        or tv_sub in {"satellite", "streaming", "fibe"}
-        or any(w in sym for w in ("satellite", "receiver", "dish", "signal", "antenna", "transponder", "channel", "guide", "tv", "télé", "tele", "antenne", "récepteur", "recepteur", "fibe", "stream"))
+        or tv_sub in {"satellite", "streaming", "streamer", "fibe"}
+        or has_tv_error_code
+        or any(w in sym for w in ("satellite", "receiver", "dish", "signal", "antenna", "transponder", "channel", "guide", "tv", "télé", "tele", "antenne", "récepteur", "recepteur", "fibe", "stream", "streamer"))
     )
     if is_tv:
-        if tv_sub == "streaming" or any(w in sym for w in ("app", "stream", "fibe")):
+        if not service_type:
+            st = "tv"
+        if tv_sub == "satellite":
+            guide_key = "tv_satellite" if "tv_satellite" in FAKE_TROUBLESHOOTING_GUIDES else "tv_satellite_101"
+            state["tv_sub_type"] = "satellite"
+        elif tv_sub in {"streaming", "streamer"} or any(w in sym for w in ("app", "stream", "streamer", "fibe")):
             guide_key = "tv_streaming" if "tv_streaming" in FAKE_TROUBLESHOOTING_GUIDES else "tv_satellite_101"
             state["tv_sub_type"] = "streaming"
         else:

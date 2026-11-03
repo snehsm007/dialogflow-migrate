@@ -1,7 +1,7 @@
 {
   "name": "c9ab923f-9599-49a0-8a16-48c5eebdb6df",
-  "displayName": "snehsm-FDEBootcamp-CHI-migration",
-  "description": "snehsm-FDEBootcamp-CHI-migration voice and chat agent.",
+  "displayName": "snehsm-FDEBootcamp-CHI-migration-r2",
+  "description": "snehsm-FDEBootcamp-CHI-migration-r2 voice and chat agent.",
   "rootAgent": "router",
   "globalInstruction": "global_instruction.txt",
   "modelSettings": {

@@ -1493,7 +1493,20 @@ def lookup_account_impl(  # pragma: no cover
 
     _record_audit(state)
 
-    id_val = identifier if str(identifier or "").strip() else (phone_or_account if str(phone_or_account or "").strip() else kwargs.get("phone_or_account", ""))
+    id_val = ""
+    for _candidate in (
+        identifier,
+        phone_or_account,
+        kwargs.get("phone_or_account"),
+        kwargs.get("account_number"),
+        kwargs.get("ban"),
+        kwargs.get("account_id"),
+        kwargs.get("account"),
+        kwargs.get("phone_number"),
+    ):
+        if _candidate is not None and str(_candidate).strip():
+            id_val = _candidate
+            break
     name_val = str(full_name or kwargs.get("full_name") or kwargs.get("caller_name") or kwargs.get("name") or "").strip()
     email_val = str(email or kwargs.get("email") or "").strip()
     postal_val = str(postal_code or kwargs.get("postal_code") or kwargs.get("zip") or kwargs.get("zip_code") or "").strip()

@@ -104,3 +104,36 @@ def test_run_troubleshooting_and_sms_declined_sms_fallback_to_verbal(monkeypatch
     assert "Lisez les verbal_steps" in res["data"]["agent_action"]
     assert "guider" in res["data"]["spoken_message"]
 
+
+def test_run_troubleshooting_and_sms_streaming_steps() -> None:
+    from lib.services import run_troubleshooting_and_sms_impl
+
+    res = run_troubleshooting_and_sms_impl(
+        service_type="tv",
+        tv_sub_type="streaming",
+        symptom="Bell Streamer freezing",
+    )
+    assert res["status"] == "ok"
+    assert res["data"]["diagnostic_status"] == "completed"
+    steps = res["data"]["verbal_steps"]
+    assert len(steps) > 0
+    assert any("wi-fi or ethernet" in s.lower() for s in steps)
+    assert not any("satellite" in s.lower() for s in steps)
+    assert not any("rg6" in s.lower() for s in steps)
+
+
+def test_run_troubleshooting_and_sms_satellite_receiver_error() -> None:
+    from lib.services import run_troubleshooting_and_sms_impl
+
+    res = run_troubleshooting_and_sms_impl(
+        service_type="tv",
+        symptom="satellite receiver error 101",
+    )
+    assert res["status"] == "ok"
+    assert res["data"]["diagnostic_status"] == "completed"
+    assert res["data"]["remote_signal_sent"] is True
+    steps = res["data"]["verbal_steps"]
+    assert len(steps) > 0
+    assert any("satellite dish" in s.lower() for s in steps)
+
+

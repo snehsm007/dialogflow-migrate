@@ -848,7 +848,20 @@ def lookup_account_impl(
 
     _record_audit(state)
 
-    id_val = identifier if str(identifier or "").strip() else (phone_or_account if str(phone_or_account or "").strip() else kwargs.get("phone_or_account", ""))
+    id_val = ""
+    for _candidate in (
+        identifier,
+        phone_or_account,
+        kwargs.get("phone_or_account"),
+        kwargs.get("account_number"),
+        kwargs.get("ban"),
+        kwargs.get("account_id"),
+        kwargs.get("account"),
+        kwargs.get("phone_number"),
+    ):
+        if _candidate is not None and str(_candidate).strip():
+            id_val = _candidate
+            break
     name_val = str(full_name or kwargs.get("full_name") or kwargs.get("caller_name") or kwargs.get("name") or "").strip()
     email_val = str(email or kwargs.get("email") or "").strip()
     postal_val = str(postal_code or kwargs.get("postal_code") or kwargs.get("zip") or kwargs.get("zip_code") or "").strip()
@@ -3343,14 +3356,31 @@ def run_troubleshooting_and_sms_impl(
     st = str(service_type or "internet").lower()
     tv_sub = str(tv_sub_type or state.get("tv_sub_type") or "").lower()
 
+    tv_error_codes = (
+        "error 101",
+        "erreur 101",
+        "code 101",
+        "error 014",
+        "erreur 014",
+        "error 013",
+        "error 005",
+    )
+    has_tv_error_code = any(ec in sym for ec in tv_error_codes)
+
     is_tv = (
         st in {"tv", "television", "video"}
         or str(state.get("lob", "")).lower() == "tv"
-        or tv_sub in {"satellite", "streaming", "fibe"}
-        or any(w in sym for w in ("satellite", "receiver", "dish", "signal", "antenna", "transponder", "channel", "guide", "tv", "télé", "tele", "antenne", "récepteur", "recepteur", "fibe", "stream"))
+        or tv_sub in {"satellite", "streaming", "streamer", "fibe"}
+        or has_tv_error_code
+        or any(w in sym for w in ("satellite", "receiver", "dish", "signal", "antenna", "transponder", "channel", "guide", "tv", "télé", "tele", "antenne", "récepteur", "recepteur", "fibe", "stream", "streamer"))
     )
     if is_tv:
-        if tv_sub == "streaming" or any(w in sym for w in ("app", "stream", "fibe")):
+        if not service_type:
+            st = "tv"
+        if tv_sub == "satellite":
+            guide_key = "tv_satellite" if "tv_satellite" in FAKE_TROUBLESHOOTING_GUIDES else "tv_satellite_101"
+            state["tv_sub_type"] = "satellite"
+        elif tv_sub in {"streaming", "streamer"} or any(w in sym for w in ("app", "stream", "streamer", "fibe")):
             guide_key = "tv_streaming" if "tv_streaming" in FAKE_TROUBLESHOOTING_GUIDES else "tv_satellite_101"
             state["tv_sub_type"] = "streaming"
         else:
@@ -4009,6 +4039,28 @@ def _resolve_plan_id(requested: Any) -> str:
     key = _plan_name_key(requested)
     if not key:
         return ""
+    # Tier-symmetry aliases (Postel's Law): normalize symmetrical tier identifiers to catalog IDs
+    tier_aliases = {
+        "mob starter": "MOB-LITE",
+        "mob basic": "MOB-LITE",
+        "mobile starter": "MOB-LITE",
+        "mobility starter": "MOB-LITE",
+        "starter mobile": "MOB-LITE",
+        "starter mobility": "MOB-LITE",
+        "mob plus": "MOB-UNLTD",
+        "mobile plus": "MOB-UNLTD",
+        "mobility plus": "MOB-UNLTD",
+        "mob max": "MOB-PREM",
+        "mobile max": "MOB-PREM",
+        "mobility max": "MOB-PREM",
+        "net max": "NET-GIG",
+        "internet max": "NET-GIG",
+        "tv plus": "TV-MAX",
+        "tv prem": "TV-MAX",
+        "tv premium": "TV-MAX",
+    }
+    if key in tier_aliases:
+        return tier_aliases[key]
     entries = [*(p for v in FAKE_PLAN_CATALOG.values() for p in v), *FAKE_ADDON_CATALOG]
     # 1) exact name match in any language (Fiber/Fibre spelling folded)
     fold = lambda s: s.replace("fibre", "fiber").replace("fibra", "fiber")

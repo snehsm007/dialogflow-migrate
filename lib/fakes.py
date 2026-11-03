@@ -783,6 +783,29 @@ FAKE_TROUBLESHOOTING_GUIDES: dict[str, dict[str, Any]] = {
             "Espere hasta 10 minutos a que el decodificador descargue la guía interactiva de programación.",
         ],
     },
+    "tv_streaming": {
+        "diagnostic_purpose_en": "Resolve TV streaming app and playback issues",
+        "diagnostic_purpose_fr": "Résoudre les problèmes de diffusion et de l'application télé",
+        "diagnostic_purpose_es": "Resolver problemas de transmisión y de la aplicación de televisión",
+        "steps_en": [
+            "Check Wi-Fi or Ethernet internet connectivity on the streaming device, smart TV, or mobile phone.",
+            "Force-close the TV streaming app completely, wait 10 seconds, and relaunch it.",
+            "Clear the TV app cache in device settings and check for the latest app update.",
+            "Power-cycle the streaming box or smart TV for 15 seconds and sign back in.",
+        ],
+        "steps_fr": [
+            "Vérifiez la connectivité Internet Wi-Fi ou Ethernet sur l'appareil de diffusion, le téléviseur intelligent ou le téléphone mobile.",
+            "Fermez complètement l'application télé, attendez 10 secondes, puis relancez-la.",
+            "Videz le cache de l'application dans les paramètres de l'appareil et vérifiez les mises à jour.",
+            "Redémarrez le boîtier de diffusion ou le téléviseur intelligent pendant 15 secondes et reconnectez-vous.",
+        ],
+        "steps_es": [
+            "Verifique la conexión a Internet por Wi-Fi o Ethernet en el dispositivo de transmisión, Smart TV o teléfono móvil.",
+            "Fuerce el cierre de la aplicación de televisión, espere 10 segundos y vuelva a abrirla.",
+            "Borre la memoria caché de la aplicación en la configuración del dispositivo y busque actualizaciones.",
+            "Reinicie el dispositivo de transmisión o Smart TV durante 15 segundos y vuelva a iniciar sesión.",
+        ],
+    },
 }
 
 FAKE_APPOINTMENTS_DATA: dict[str, Any] = {

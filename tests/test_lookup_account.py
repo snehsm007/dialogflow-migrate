@@ -409,5 +409,16 @@ def test_lookup_account_french_billing_dispute_not_fraud(monkeypatch) -> None:
     assert reply["data"].get("must_escalate_immediately") is not True
 
 
+def test_lookup_account_account_number_and_ban_kwargs() -> None:
+    res_acc = lookup_account_impl(account_number="202555019")
+    assert res_acc["status"] == "ok"
+    assert res_acc["data"]["account_id"] == "ACC-5019"
+
+    res_ban = lookup_account_impl(ban="202555019")
+    assert res_ban["status"] == "ok"
+    assert res_ban["data"]["account_id"] == "ACC-5019"
+
+
+
 
 

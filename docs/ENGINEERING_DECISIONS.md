@@ -540,6 +540,63 @@ Audited from real-time live audio telemetry recorded between `08:06:33Z` and `08
 
 ---
 
+### ADR-33: `tv_streaming` Troubleshooting Guide & Platform Disambiguation
+- **Status:** **ACCEPTED & IMPLEMENTED**
+- **Date:** 2026-11-03
+- **Deciders:** FDE Chicago Architecture Team
+
+#### Context & Problem
+In the DFCX forensic migration audit (`docs/migration_audit.md`), virtual repair (M4) handles TV troubleshooting across both satellite receivers and TV streaming platforms (Bell Streamer, Fibe TV App, smart TV apps, mobile apps).
+In the CXAS v1 baseline, `FAKE_TROUBLESHOOTING_GUIDES` in `lib/fakes.py` lacked the `"tv_streaming"` key. Consequently, line ~3354 of `lib/services.py` fell back to `"tv_satellite_101"`, causing callers reporting streaming app issues to receive satellite dish snowfall and RG6 coaxial cable troubleshooting instructions.
+Additionally, callers who explicitly specified their TV platform upfront were asked redundant platform disambiguation questions.
+
+#### Decision
+1. Add generic, trilingual (EN, fr-CA, es-US) `"tv_streaming"` guide to `FAKE_TROUBLESHOOTING_GUIDES` in `lib/fakes.py` covering device Wi-Fi/Ethernet connectivity, app force-close, cache clearing/updates, and 15-second power-cycling.
+2. In `lib/services.py` (`run_troubleshooting_and_sms_impl`), recognize explicit TV receiver error codes (`error 101`, `code 101`, `error 014`, `error 013`, `error 005`) as television domain (defaulting to satellite unless streaming is specified), and normalize `"streamer"` to `tv_sub_type = "streaming"`.
+3. In `cxas_app/agents/tech_support/instruction.txt`, refine `<step name="Disambiguate Television Platform">` so callers who already stated their platform skip redundant disambiguation and invoke `run_troubleshooting_and_sms` directly.
+
+#### Consequences
+TV streaming callers receive relevant streaming instructions instead of satellite dish instructions. Eliminates unnecessary turns in TV support journeys while maintaining prompt size safely under the 12,000-character ceiling.
+
+---
+
+### ADR-34: Flexible Account Identifier Keyword Arguments in `lookup_account_impl`
+- **Status:** **ACCEPTED & IMPLEMENTED**
+- **Date:** 2026-11-03
+- **Deciders:** FDE Chicago Architecture Team
+
+#### Context & Problem
+In DFCX migration flows and automated test scenarios, callers and tool callers supply account identifiers under multiple parameter names: `account_number`, `ban`, `account_id`, `account`, or `phone_number`.
+In `lookup_account_impl` (`lib/services.py`), `id_val` was resolved strictly from `identifier`, `phone_or_account`, and `kwargs.get("phone_or_account")`. When a caller provided `account_number="202555019"` or `ban="202555019"`, `id_val` was empty, triggering an immediate `INVALID_INPUT` error.
+
+#### Decision
+Expand `id_val` candidate resolution in `lookup_account_impl` (`lib/services.py`) to systematically inspect:
+`identifier`, `phone_or_account`, `kwargs.get("phone_or_account")`, `kwargs.get("account_number")`, `kwargs.get("ban")`, `kwargs.get("account_id")`, `kwargs.get("account")`, and `kwargs.get("phone_number")`.
+
+#### Consequences
+Eliminates spurious `INVALID_INPUT` errors when account numbers or BANs are passed via standard legacy kwargs. Fully verified by unit tests in `tests/test_lookup_account.py`.
+
+---
+
+### ADR-35: Tier-Symmetry Plan Aliases (`MOB-STARTER` / `NET-MAX` / `TV-PLUS`) in `_resolve_plan_id`
+- **Status:** **ACCEPTED & IMPLEMENTED**
+- **Date:** 2026-11-03
+- **Deciders:** FDE Chicago Architecture Team
+
+#### Context & Problem
+In live voice telemetry from Run 1, an LLM caller ordering the entry-level mobile plan invoked `commit_plan_or_order` with `plan_id="MOB-STARTER"` (inferred by symmetry with `NET-STARTER` and `TV-STARTER`). Because the canonical mobility catalog identifier is `MOB-LITE`, the tool rejected the order with `UNKNOWN_PLAN_ID`. Similar tier-symmetry assumptions occur across lines of business (e.g. `MOB-BASIC` -> `MOB-LITE`, `MOB-PLUS` -> `MOB-UNLTD`, `MOB-MAX` -> `MOB-PREM`, `NET-MAX` -> `NET-GIG`, `TV-PLUS` / `TV-PREM` -> `TV-MAX`).
+
+#### Decision
+In accordance with Postel's Law ("be liberal in what you accept, conservative in what you emit"), expand `_resolve_plan_id` in `lib/services.py` to recognize tier-symmetry aliases and map them directly to canonical catalog IDs:
+- Mobility: `MOB-STARTER`, `MOB-BASIC` -> `MOB-LITE`; `MOB-PLUS` -> `MOB-UNLTD`; `MOB-MAX` -> `MOB-PREM`.
+- Internet: `NET-MAX` -> `NET-GIG`.
+- Television: `TV-PLUS`, `TV-PREM` -> `TV-MAX`.
+
+#### Consequences
+Prevents unnecessary order rejections and conversational recovery friction when callers or reasoning models construct intuitive tier names across lines of business.
+
+---
+
 ## 4. Glossary of Terms & Acronyms
 To ensure absolute clarity across all engineering and operations stakeholders, all acronyms used in this document are defined below:
 

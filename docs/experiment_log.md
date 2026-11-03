@@ -8,3 +8,6 @@ Note: Day 2 v1 inherits ADRs 1–28 from Day 1 `snehsm-FDEBootcamp-CHI-greenfiel
 
 | Iteration | Date (UTC) | Commit | Mechanism / Change | Impact Verdict (`make smoke-impact`) | Strict `3/3` | Majority `>=2/3` | Individual | Decision / Keep? | Full Run ID & Notes |
 |---|---|---|---|---|---|---|---|---|---|
+| 1 (v1 baseline) | 2026-11-03 16:16 | `4032e92` | Baseline migration import (1 Root Router + 4 Domain Specialists + 22 Tools) | PASS | -- | -- | -- | Deployed to app `0cf41d68-5bd0-4fda-b62f-d500cbdca886` | Academy Run 1 in-flight (`b400c58e4cbe47e38d03ce8858b317a2`) |
+| 2 (Candidate Round 2) | 2026-11-03 16:30 | `HEAD` | ADR-33 (`tv_streaming` guide & TV platform disambiguation) + ADR-34 (`lookup_account` BAN/account_number kwargs) + ADR-35 (tier-symmetry plan aliases) + migration dossier | PASS | TBD | TBD | TBD | Candidate Round 2 for verification | Isolated candidate app on `fix/mig-round2` |
+

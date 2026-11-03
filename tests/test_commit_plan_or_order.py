@@ -171,3 +171,24 @@ def test_commit_ambiguous_name_still_lists_valid_ids(monkeypatch) -> None:
     res = tool.commit_plan_or_order(plan_id="internet", confirmed=True)
     assert res["error"] == "UNKNOWN_PLAN_ID"
     assert "NET-PLUS" in res["data"]["valid_plan_ids"]
+
+
+@pytest.mark.parametrize(
+    "alias, expected_plan_id",
+    [
+        ("MOB-STARTER", "MOB-LITE"),
+        ("MOB-BASIC", "MOB-LITE"),
+        ("MOB-PLUS", "MOB-UNLTD"),
+        ("MOB-MAX", "MOB-PREM"),
+        ("NET-MAX", "NET-GIG"),
+        ("TV-PLUS", "TV-MAX"),
+        ("TV-PREM", "TV-MAX"),
+    ],
+)
+def test_commit_plan_tier_symmetry_aliases(monkeypatch, alias: str, expected_plan_id: str) -> None:
+    session = SimpleNamespace(state={"auth_status": "pass", "account_id": "A1001"})
+    monkeypatch.setattr(tool, "context", session, raising=False)
+    res = tool.commit_plan_or_order(plan_id=alias, confirmed=True)
+    assert res["status"] == "ok"
+    assert res["data"]["plan_id"] == expected_plan_id
+

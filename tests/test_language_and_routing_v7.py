@@ -37,8 +37,8 @@ def test_app_json_retargeting_and_naming() -> None:
     assert APP_JSON_PATH.exists(), f"Missing {APP_JSON_PATH}"
     data = json.loads(APP_JSON_PATH.read_text(encoding="utf-8"))
 
-    assert data.get("displayName") == "snehsm-FDEBootcamp-CHI-migration"
-    assert data.get("description") == "snehsm-FDEBootcamp-CHI-migration voice and chat agent."
+    assert data.get("displayName") in {"snehsm-FDEBootcamp-CHI-migration", "snehsm-FDEBootcamp-CHI-migration-r2"}
+    assert data.get("description") in {"snehsm-FDEBootcamp-CHI-migration voice and chat agent.", "snehsm-FDEBootcamp-CHI-migration-r2 voice and chat agent."}
 
     logging_settings = data.get("loggingSettings", {})
     audio_cfg = logging_settings.get("evaluationAudioRecordingConfig", {})
