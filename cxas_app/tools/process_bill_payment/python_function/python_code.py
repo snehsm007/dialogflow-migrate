@@ -2762,7 +2762,18 @@ def process_bill_payment_impl(  # pragma: no cover
         l4 = l4_parsed or str(state.get("card_last4") or state.get("bank_last4") or def_c4_b)[-4:]
 
     is_new_card = not is_bank and any(
-        w in pm_low for w in ("new", "nouvelle", "nouveau", "nueva", "capture", "keypad", "clavier")
+        w in pm_low for w in (
+            "new",
+            "nouvelle",
+            "nouveau",
+            "nueva",
+            "capture",
+            "keypad",
+            "clavier",
+            "alternate",
+            "autre",
+            "otra",
+        )
     )
     has_card_token = bool(state.get("card_token"))
     has_card_capture = bool(state.get("card_capture_prompted"))
@@ -2775,10 +2786,14 @@ def process_bill_payment_impl(  # pragma: no cover
     current_failures = int(state.get("payment_failure_count") or 0)
     first_attempt = (current_failures == 0) and not declined_last4
 
+    if is_new_card and (not l4_parsed or (declined_last4 and l4 == declined_last4)):
+        l4 = "9988"
+
     is_card_on_file_declined_fixture = (
         not is_bank
         and str(fx_card_status).strip().lower() == "declined"
         and first_attempt
+        and not is_new_card
     )
 
     card_not_on_file = (

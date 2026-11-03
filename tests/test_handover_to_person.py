@@ -73,3 +73,28 @@ def test_handover_to_person_preserves_french_session_when_model_passes_en_us(mon
     assert reply["data"]["language"] == "fr-CA"
     assert session.state["language"] == "fr-CA"
     assert "représentant" in session.state["handoff_message"].lower()
+
+
+def test_handover_to_person_service_issue_routes_to_technical_support(monkeypatch) -> None:
+    session = SimpleNamespace(state={"account_id": "A1001", "language": "en-US"})
+    monkeypatch.setattr(tool, "context", session, raising=False)
+    reply = tool.handover_to_person(
+        reason="user_requested_agent",
+        summary="Customer having issues with my service and internet outage",
+    )
+    assert reply["status"] == "ok"
+    assert reply["data"]["target_queue"] == "technical_support"
+    assert reply["data"]["session_context"]["module"] == "TECHNICAL_SUPPORT"
+
+
+def test_handover_to_person_explicit_technical_support_queue(monkeypatch) -> None:
+    session = SimpleNamespace(state={"account_id": "A1001", "language": "en-US"})
+    monkeypatch.setattr(tool, "context", session, raising=False)
+    reply = tool.handover_to_person(
+        reason="user_requested_agent",
+        target_queue="technical_support",
+    )
+    assert reply["status"] == "ok"
+    assert reply["data"]["target_queue"] == "technical_support"
+    assert reply["data"]["session_context"]["module"] == "TECHNICAL_SUPPORT"
+

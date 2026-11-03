@@ -558,6 +558,47 @@ def build_language_sheet(locale: str, agent_name: str = "router") -> str:  # pra
     lines.append("</active_language_sheet>")
     return "\n".join(lines)
 
+_ENGLISH_MARKERS = frozenset(  # pragma: no cover
+    {
+        "hello",
+        "hi",
+        "my",
+        "want",
+        "need",
+        "bill",
+        "account",
+        "please",
+        "help",
+        "cancel",
+        "reset",
+        "password",
+        "outage",
+        "upgrade",
+        "refund",
+        "dispute",
+        "payment",
+        "phone",
+        "the",
+        "with",
+        "have",
+        "your",
+        "this",
+        "that",
+        "would",
+        "could",
+        "check",
+        "issue",
+        "working",
+        "down",
+        "is",
+        "am",
+        "at",
+        "address",
+        "moving",
+        "availability",
+    }
+)
+
 _RE_RELAY_ACTIVE_LANG = re.compile(  # pragma: no cover
     r"['\"]active_language['\"]\s*:\s*['\"]([a-zA-Z]{2}(?:-[a-zA-Z]{2})?)['\"]"
 )
@@ -801,47 +842,6 @@ _DP_STREET_ADDRESS_TOKENS = frozenset(  # pragma: no cover
 
 _DP_STREET_NUMBER_RE = re.compile(r"\b\d{1,5}\b")  # pragma: no cover
 
-_ENGLISH_MARKERS = frozenset(  # pragma: no cover
-    {
-        "hello",
-        "hi",
-        "my",
-        "want",
-        "need",
-        "bill",
-        "account",
-        "please",
-        "help",
-        "cancel",
-        "reset",
-        "password",
-        "outage",
-        "upgrade",
-        "refund",
-        "dispute",
-        "payment",
-        "phone",
-        "the",
-        "with",
-        "have",
-        "your",
-        "this",
-        "that",
-        "would",
-        "could",
-        "check",
-        "issue",
-        "working",
-        "down",
-        "is",
-        "am",
-        "at",
-        "address",
-        "moving",
-        "availability",
-    }
-)
-
 _FRENCH_MARKERS = frozenset(  # pragma: no cover
     {
         "bonjour",
@@ -986,16 +986,26 @@ def detect_utterance_language(  # pragma: no cover
     if explicit_switch:
         return explicit_switch
 
-    if re.search(r"[\u0600-\u06ff]", utterance):
-        return "ar-XA"
-    if re.search(r"[\u0900-\u097f]", utterance):
-        return "hi-IN"
-    if re.search(r"[\u3040-\u30ff]", utterance):
-        return "ja-JP"
-    if re.search(r"[\uac00-\ud7af]", utterance):
-        return "ko-KR"
-    if re.search(r"[\u4e00-\u9fff]", utterance):
-        return "zh-CN"
+    curr_loc = resolve_locale(current_language)
+    latin_count = len(re.findall(r"[a-zA-Z]", utterance))
+    non_latin_scripts = (
+        (r"[\u0600-\u06ff]", "ar-XA"),
+        (r"[\u0900-\u097f]", "hi-IN"),
+        (r"[\u3040-\u30ff]", "ja-JP"),
+        (r"[\uac00-\ud7af]", "ko-KR"),
+        (r"[\u4e00-\u9fff]", "zh-CN"),
+    )
+    for pattern, script_loc in non_latin_scripts:
+        script_matches = re.findall(pattern, utterance)
+        script_count = len(script_matches)
+        if script_count >= 2:
+            is_suppressed = (
+                curr_loc in ("en-US", "fr-CA", "es-US")
+                and latin_count > script_count
+                and latin_count >= 6
+            )
+            if not is_suppressed:
+                return script_loc
 
     words = [w.lower() for w in cleaned.split()]
 
@@ -1177,6 +1187,20 @@ def detect_active_call_language(state_dict: Any, llm_request: Any) -> str:  # pr
             continue
 
         if has_locked or idx > 0:
+            if idx > 0 and not explicit_in_state:
+                if current not in ("en-US", "fr-CA", "es-US") or not has_locked:
+                    recheck = detect_utterance_language(
+                        utt, current_language="en-US", is_turn_1=False, language_locked=False
+                    )
+                    if recheck in ("fr-CA", "es-US"):
+                        current = recheck
+                        has_locked = True
+                    elif recheck == "en-US":
+                        words_clean = [
+                            w for w in re.sub(r"[0-9\W_]+", " ", utt).lower().split() if w
+                        ]
+                        if sum(1 for w in words_clean if w in _ENGLISH_MARKERS) >= 3:
+                            current = "en-US"
             # Locked or mid-call: bare 2/digits or ambiguous tokens never flip language
             continue
 
@@ -1201,7 +1225,11 @@ def detect_active_call_language(state_dict: Any, llm_request: Any) -> str:  # pr
                 utt, current_language=current, is_turn_1=True, language_locked=False
             )
             current = det
-            has_locked = True
+            has_en_markers = sum(
+                1 for w in re.sub(r"[0-9\W_]+", " ", utt).lower().split() if w in _ENGLISH_MARKERS
+            ) >= 2
+            if det in ("fr-CA", "es-US") or has_en_markers:
+                has_locked = True
 
     return current
 

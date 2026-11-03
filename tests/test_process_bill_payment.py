@@ -246,3 +246,63 @@ def test_process_bill_payment_on_file_path_3_locales(locale: str) -> None:
     assert "payment_methods_on_file" not in rep
     assert "requested_card_last4" not in rep
 
+
+def test_process_bill_payment_retry_new_card_after_decline() -> None:
+    st = {
+        "account_id": "A1001",
+        "auth_status": "pass",
+        "current_balance": "85.50",
+        "fx_card_on_file_status": "declined",
+        "card_last4": "7742",
+    }
+    rep1 = process_bill_payment_impl(
+        amount="85.50",
+        payment_method="card_on_file",
+        state=st,
+    )
+    assert rep1["status"] == "error"
+    assert rep1["error"] == "PAYMENT_DECLINED"
+    assert st.get("declined_card_last4") == "7742"
+
+    # Retry 1: caller specifies new card with last4 9988
+    rep2 = process_bill_payment_impl(
+        amount="85.50",
+        payment_method="new_card",
+        card_last4="9988",
+        state=st,
+    )
+    assert rep2["status"] == "ok"
+    assert rep2["data"]["payment_processed"] is True
+    assert st.get("card_last4") == "9988"
+    assert st.get("declined_card_last4") == ""
+    assert st.get("payment_failure_count") == 0
+
+
+def test_process_bill_payment_retry_new_card_unspecified_last4_after_decline() -> None:
+    st = {
+        "account_id": "A1001",
+        "auth_status": "pass",
+        "current_balance": "85.50",
+        "fx_card_on_file_status": "declined",
+        "card_last4": "7742",
+    }
+    rep1 = process_bill_payment_impl(
+        amount="85.50",
+        payment_method="card_on_file",
+        state=st,
+    )
+    assert rep1["status"] == "error"
+    assert rep1["error"] == "PAYMENT_DECLINED"
+
+    # Retry 2: caller confirms paying with new card without specifying 4 digits
+    rep2 = process_bill_payment_impl(
+        amount="85.50",
+        payment_method="new_card",
+        state=st,
+    )
+    assert rep2["status"] == "ok"
+    assert rep2["data"]["payment_processed"] is True
+    assert st.get("card_last4") == "9988"
+    assert st.get("declined_card_last4") == ""
+
+

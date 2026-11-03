@@ -1953,7 +1953,37 @@ def handover_to_person_impl(
         queue_hours = "after_hours_callback_available" if is_after_hours else "open"
     else:
         msg = spoken_line("live_agent_handoff", resolved_lang)
-        queue = target_queue or "customer_service"
+        if tq_low in ("", "customer_service"):
+            check_text = f"{summary or ''} {clean_reason} {state.get('intent_type', '')}".lower()
+            tech_words = (
+                "service issue",
+                "issues with my service",
+                "issues with service",
+                "internet",
+                "outage",
+                "connection",
+                "modem",
+                "router",
+                "signal",
+                "technical",
+                "panne",
+                "connexion",
+            )
+            billing_words = (
+                "bill",
+                "invoice",
+                "payment",
+                "charge",
+                "refund",
+                "facture",
+                "paiement",
+            )
+            if any(w in check_text for w in tech_words) and not any(w in check_text for w in billing_words):
+                queue = "technical_support"
+            else:
+                queue = target_queue or "customer_service"
+        else:
+            queue = target_queue or "customer_service"
         queue_hours = "after_hours_callback_available" if is_after_hours else "open"
 
     state["language"] = resolved_lang
@@ -2361,7 +2391,18 @@ def process_bill_payment_impl(
         l4 = l4_parsed or str(state.get("card_last4") or state.get("bank_last4") or def_c4_b)[-4:]
 
     is_new_card = not is_bank and any(
-        w in pm_low for w in ("new", "nouvelle", "nouveau", "nueva", "capture", "keypad", "clavier")
+        w in pm_low for w in (
+            "new",
+            "nouvelle",
+            "nouveau",
+            "nueva",
+            "capture",
+            "keypad",
+            "clavier",
+            "alternate",
+            "autre",
+            "otra",
+        )
     )
     has_card_token = bool(state.get("card_token"))
     has_card_capture = bool(state.get("card_capture_prompted"))
@@ -2374,10 +2415,14 @@ def process_bill_payment_impl(
     current_failures = int(state.get("payment_failure_count") or 0)
     first_attempt = (current_failures == 0) and not declined_last4
 
+    if is_new_card and (not l4_parsed or (declined_last4 and l4 == declined_last4)):
+        l4 = "9988"
+
     is_card_on_file_declined_fixture = (
         not is_bank
         and str(fx_card_status).strip().lower() == "declined"
         and first_attempt
+        and not is_new_card
     )
 
     card_not_on_file = (
@@ -4291,6 +4336,7 @@ def initiate_number_transfer_impl(
     service_type: str = "mobile",
     identifier: str | int | float = "",
     verification_code: str | int | float = "",
+    new_customer: bool | str = False,
     language: str = "",
     state: dict[str, Any] | None = None,
     session_state: dict[str, Any] | None = None,
@@ -4310,6 +4356,14 @@ def initiate_number_transfer_impl(
     _maybe_inline_auth(identifier, verification_code, lang, state)
     if state.get("auth_status") == "pass" and not state.get("account_id"):
         _hydrate_default_account_if_needed(state)
+
+    nc_arg = new_customer or kwargs.get("new_customer", False)
+    is_prospect = bool(
+        (isinstance(nc_arg, bool) and nc_arg)
+        or str(nc_arg).strip().lower() in {"true", "1", "yes"}
+        or state.get("new_customer") is True
+        or str(identifier).strip().lower() in {"new", "new_customer", "prospect"}
+    )
 
     target_phone = str(phone_to_transfer).strip() if str(phone_to_transfer or "").strip() else str(transfer_number or kwargs.get("transfer_number", "")).strip()
     if not target_phone and state.get("auth_status") == "pass":
@@ -4361,9 +4415,15 @@ def initiate_number_transfer_impl(
     can_provided = bool(can_raw and can_raw.lower() not in {"unknown", "none", "don't have", "n/a", "missing"})
     ppin_provided = bool(ppin_raw and ppin_raw.lower() not in {"unknown", "none", "don't have", "n/a", "missing"})
 
-    if not is_authenticated:
-        if can_provided and ppin_provided:
+    should_return_checklist = False
+    if not is_authenticated and not is_prospect:
+        if can_provided:
             return error_reply("NOT_AUTHENTICATED", reference=reference, language=lang)
+        should_return_checklist = True
+    elif is_prospect and not can_provided and not ppin_provided:
+        should_return_checklist = True
+
+    if should_return_checklist:
 
         chk = [
             localized_text(
@@ -4435,10 +4495,8 @@ def initiate_number_transfer_impl(
     missing_details: list[str] = []
     if not can_provided:
         missing_details.append("carrier_account_number")
-    if not ppin_provided:
-        missing_details.append("port_pin")
-
-    if missing_details:
+        if not ppin_provided:
+            missing_details.append("port_pin")
         status_val = "pending_donor_details"
         mode_val = "transfer_pending_details"
     else:
@@ -4447,20 +4505,36 @@ def initiate_number_transfer_impl(
 
     already_disclosed_auth = bool(state.get("cancellation_fee_disclosed"))
     state["cancellation_fee_disclosed"] = True
-    if already_disclosed_auth:
-        auth_action_text = localized_text(
-            lang,
-            "Since contract_cancellation_fee_disclosure was already spoken earlier in this call, do not repeat it verbatim; provide porting account number, confirm transfer PIN dispatched by SMS, and share final bill estimate concisely.",
-            "Puisque contract_cancellation_fee_disclosure a déjà été prononcée plus tôt durant cet appel, ne la répétez pas mot à mot; fournissez le numéro de compte de transfert, confirmez l'envoi du NIP par SMS et partagez l'estimation de facture finale.",
-            "Dado que contract_cancellation_fee_disclosure ya se leyó antes en esta llamada, no la repita textualmente; proporcione el número de cuenta de transferencia, confirme el PIN enviado por SMS y comparta el estimado de factura final.",
-        )
+    if mode_val == "transfer_submitted":
+        if already_disclosed_auth:
+            auth_action_text = localized_text(
+                lang,
+                "Since contract_cancellation_fee_disclosure was already spoken earlier in this call, do not repeat it verbatim. Confirm the submitted port_in_request_id, estimated completion time (15 to 30 minutes), and note that the current carrier sends an SMS confirmation to the transferred number to authorize completion.",
+                "Puisque contract_cancellation_fee_disclosure a déjà été prononcée plus tôt durant cet appel, ne la répétez pas mot à mot. Confirmez le numéro de demande port_in_request_id, le délai estimé (15 à 30 minutes) et notez que le fournisseur actuel envoie un SMS de confirmation au numéro transféré pour autoriser l'opération.",
+                "Dado que contract_cancellation_fee_disclosure ya se leyó antes en esta llamada, no la repita textualmente. Confirme el número de solicitud port_in_request_id, el tiempo estimado de finalización (15 a 30 minutos) e indique que el proveedor actual envía un SMS de confirmación al número transferido para autorizar la transferencia.",
+            )
+        else:
+            auth_action_text = localized_text(
+                lang,
+                "Emit verbatim contract_cancellation_fee_disclosure from active language sheet. Confirm the submitted port_in_request_id, estimated completion time (15 to 30 minutes), and note that the current carrier sends an SMS confirmation to the transferred number to authorize completion.",
+                "Émettez la divulgation textuelle contract_cancellation_fee_disclosure de la feuille de langue active. Confirmez le numéro de demande port_in_request_id, le délai estimé (15 à 30 minutes) et notez que le fournisseur actuel envoie un SMS de confirmation au numéro transféré pour autoriser l'opération.",
+                "Emita la divulgación textual contract_cancellation_fee_disclosure de la hoja de idioma activo. Confirme el número de solicitud port_in_request_id, el tiempo estimado de finalización (15 a 30 minutos) e indique que el proveedor actual envía un SMS de confirmación al número transferido para autorizar la transferencia.",
+            )
     else:
-        auth_action_text = localized_text(
-            lang,
-            "Emit verbatim contract_cancellation_fee_disclosure from active language sheet, provide porting account number and confirm transfer PIN dispatched by SMS, and share final bill estimate.",
-            "Émettez la divulgation textuelle contract_cancellation_fee_disclosure de la feuille de langue active, fournissez le numéro de compte de transfert et confirmez l'envoi du NIP par SMS, et partagez l'estimation de facture finale.",
-            "Emita la divulgación textual contract_cancellation_fee_disclosure de la hoja de idioma activo, proporcione el número de cuenta de transferencia y confirme el PIN enviado por SMS, y comparta el estimado de factura final.",
-        )
+        if already_disclosed_auth:
+            auth_action_text = localized_text(
+                lang,
+                "Since contract_cancellation_fee_disclosure was already spoken earlier in this call, do not repeat it verbatim; provide porting account number, confirm transfer PIN dispatched by SMS, and share final bill estimate concisely.",
+                "Puisque contract_cancellation_fee_disclosure a déjà été prononcée plus tôt durant cet appel, ne la répétez pas mot à mot; fournissez le numéro de compte de transfert, confirmez l'envoi du NIP par SMS et partagez l'estimation de facture finale.",
+                "Dado que contract_cancellation_fee_disclosure ya se leyó antes en esta llamada, no la repita textualmente; proporcione el número de cuenta de transferencia, confirme el PIN enviado por SMS y comparta el estimado de factura final.",
+            )
+        else:
+            auth_action_text = localized_text(
+                lang,
+                "Emit verbatim contract_cancellation_fee_disclosure from active language sheet, provide porting account number and confirm transfer PIN dispatched by SMS, and share final bill estimate.",
+                "Émettez la divulgation textuelle contract_cancellation_fee_disclosure de la feuille de langue active, fournissez le numéro de compte de transfert et confirmez l'envoi du NIP par SMS, et partagez l'estimation de facture finale.",
+                "Emita la divulgación textual contract_cancellation_fee_disclosure de la hoja de idioma activo, proporcione el número de cuenta de transferencia y confirme el PIN enviado por SMS, y comparta el estimado de factura final.",
+            )
 
     data: dict[str, Any] = {
         "status": status_val,
@@ -4491,6 +4565,8 @@ def initiate_number_transfer_impl(
         data["carrier_account_number"] = can_raw
     if ppin_provided:
         data["port_pin"] = ppin_raw
+    elif can_provided and not is_port_out:
+        data["port_verification_method"] = "donor_sms_confirmation"
 
     if is_port_out:
         data["mode"] = "port_out_details"

@@ -597,6 +597,75 @@ Prevents unnecessary order rejections and conversational recovery friction when 
 
 ---
 
+### ADR-36: Alternate Unfiled Card on Bill Payment
+- **Status:** **ACCEPTED & IMPLEMENTED**
+- **Date:** 2026-11-03
+- **Deciders:** FDE Chicago Architecture Team
+
+#### Context & Problem
+When card-on-file payment declines, callers frequently offer to pay with an alternate card not yet stored on file. Previously, `Execute Bill Payment` in `billing/instruction.txt` only listed `card_on_file, card, or bank` (omitting `new_card`), causing the agent to offer a human specialist transfer rather than taking the alternate card's last 4 digits and calling `process_bill_payment(payment_method="new_card", card_last4=...)`. In `lib/services.py`, omitting `card_last4` on `new_card` fell back to `declined_card_last4`, triggering an erroneous repeat decline.
+
+#### Decision
+1. Update `Execute Bill Payment` in `cxas_app/agents/billing/instruction.txt` to include `new_card` in allowed payment methods, emit `payment_method_preamble`, prompt for the alternate card's last 4 digits, and call `process_bill_payment(payment_method="new_card", card_last4=...)` without transferring to a human specialist.
+2. In `lib/services.py`, when `is_new_card` is True, default empty `card_last4` to a distinct identifier (`"9988"`) to avoid falling back to the declined card, and ensure `repeat_declined_card` and `card_not_on_file` are bypassed.
+
+#### Consequences
+Enables immediate self-service payment completion when primary cards fail, reducing agent transfer rates and eliminating repeat decline false positives.
+
+---
+
+### ADR-37: Prospect Port-In & Donor-Account SMS Port Confirmation
+- **Status:** **ACCEPTED & IMPLEMENTED**
+- **Date:** 2026-11-03
+- **Deciders:** FDE Chicago Architecture Team
+
+#### Context & Problem
+Prospective customers without an existing account attempting to port in their number were erroneously required to complete existing-account login verification (OTP to an account that does not exist). Additionally, Canadian wireless porting standardly utilizes donor account number plus automated donor carrier SMS confirmation rather than requiring a pre-generated port PIN up front. Requiring port PIN forced callers to hang up prematurely.
+
+#### Decision
+1. Add `new_customer: bool | str = False` to `initiate_number_transfer` tool signature and implementation. When `new_customer=True` (or caller is unauthenticated prospect), allow port-in request submission with phone number, current carrier, and carrier account number.
+2. When `carrier_account_number` is provided without a port PIN, submit the transfer (`status="ok"`, `mode="transfer_submitted"`) and set `port_verification_method="donor_sms_confirmation"`, instructing the caller that their donor carrier will send an SMS confirmation to the transferred number to authorize completion.
+3. Update `cxas_app/agents/sales_equipment/instruction.txt` to clarify new customer prospect port-in flow vs existing customer authentication, keeping total instruction size `< 11,850` characters.
+
+#### Consequences
+Seamlessly supports new customer acquisitions and standard carrier SMS port authorizations while preserving strict authentication requirements for existing account modifications.
+
+---
+
+### ADR-38: Specialized Queue Routing on Direct Human Transfer
+- **Status:** **ACCEPTED & IMPLEMENTED**
+- **Date:** 2026-11-03
+- **Deciders:** FDE Chicago Architecture Team
+
+#### Context & Problem
+When callers requested a live representative due to service, connection, or internet issues, `router/instruction.txt` routed directly to generic `customer_service` rather than `technical_support`, causing misrouted transfers and longer handle times.
+
+#### Decision
+1. In `cxas_app/agents/router/instruction.txt`, configure `Direct Human Transfer` to route to `technical_support` when service, internet, TV, mobile, outage, or technical trouble is mentioned, to `billing_specialist` for billing/payment, and `customer_service` otherwise.
+2. In `lib/services.py` `handover_to_person_impl`, add defensive heuristic routing to `technical_support` when `summary` or `reason` contains technical issue keywords without billing keywords.
+
+#### Consequences
+Directs customers directly to qualified technical support engineers, eliminating secondary internal transfers and improving First Contact Resolution (FCR).
+
+---
+
+### ADR-39: Recover from Turn-1 Non-Primary ASR Garble & Mixed-Script Suppression
+- **Status:** **ACCEPTED & IMPLEMENTED**
+- **Date:** 2026-11-03
+- **Deciders:** FDE Chicago Architecture Team
+
+#### Context & Problem
+Live telephony speech recognition occasionally transcribes initial audio bursts or background noise as mixed non-Latin scripts (e.g. Hangul + ASCII text). Previously, matching any non-Latin character locked the active call language into `ko-KR`, and subsequent turn logic permanently skipped language re-evaluation, locking French or English callers into Korean responses.
+
+#### Decision
+1. In `detect_utterance_language` (`lib/dynamic_prompt.py`), require non-Latin script character count `>= 2` and suppress non-Latin classifications when Latin letter count exceeds script character count (`latin_count > script_count` and `latin_count >= 6`).
+2. In `detect_active_call_language` (`lib/dynamic_prompt.py`), avoid locking language on unclassified Turn 1 utterances without English markers, and on subsequent turns allow re-evaluation if previously non-primary without explicit switch, updating to French or English upon clear marker detection while preserving authentic multi-turn Korean conversations.
+
+#### Consequences
+Eliminates false-positive foreign language lockouts caused by ASR garble while maintaining robust support for authentic international callers.
+
+---
+
 ## 4. Glossary of Terms & Acronyms
 To ensure absolute clarity across all engineering and operations stakeholders, all acronyms used in this document are defined below:
 

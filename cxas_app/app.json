@@ -55,6 +55,15 @@
   },
   "variableDeclarations": [
     {
+      "name": "new_customer",
+      "description": "True if the caller is a prospective customer without an existing account.",
+      "schema": {
+        "type": "BOOLEAN",
+        "default": false,
+        "required": []
+      }
+    },
+    {
       "name": "account_id",
       "description": "Account found by lookup_account. Empty until the caller is identified.",
       "schema": {

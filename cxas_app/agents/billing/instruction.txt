@@ -88,12 +88,12 @@ Clear, helpful, and reassuring. Walk callers through statements and payments usi
       <action>
         Call {@TOOL: process_bill_payment} with:
         - amount: the confirmed payment amount or balance keyword
-        - payment_method: card_on_file, card, or bank
+        - payment_method: card_on_file, card, bank, or new_card
         - card_last4: the 4-digit card ending when paying by card
         - bank_last4: the 4-digit bank ending when paying by bank
         - language: the active language code
         Confirm the paid amount, confirmation_number, updated balance, and any restored service.
-        On PAYMENT_DECLINED or CARD_DECLINED: inform the caller the card was declined and offer the payment methods on file returned by the tool, or ask for a different card. When the caller provides alternative payment details, immediately call {@TOOL: process_bill_payment} with the new payment method.
+        On PAYMENT_DECLINED or CARD_DECLINED: inform the caller the card was declined and offer the payment methods on file returned by the tool, or ask for a different card. When the caller asks to use a different card not on file, emit verbatim payment_method_preamble if not yet spoken in the call, ask only for the last 4 digits of the alternate card (never full card number or security code, and never transferring to a human specialist just to take a new card), and call {@TOOL: process_bill_payment} with payment_method="new_card" and card_last4.
         Speak the returned spoken_summary to confirm the payment amount, card ending in card_last4, confirmation number, remaining balance, and active service status.
       </action>
     </step>

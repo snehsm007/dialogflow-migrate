@@ -1206,7 +1206,37 @@ def handover_to_person_impl(  # pragma: no cover
         queue_hours = "after_hours_callback_available" if is_after_hours else "open"
     else:
         msg = spoken_line("live_agent_handoff", resolved_lang)
-        queue = target_queue or "customer_service"
+        if tq_low in ("", "customer_service"):
+            check_text = f"{summary or ''} {clean_reason} {state.get('intent_type', '')}".lower()
+            tech_words = (
+                "service issue",
+                "issues with my service",
+                "issues with service",
+                "internet",
+                "outage",
+                "connection",
+                "modem",
+                "router",
+                "signal",
+                "technical",
+                "panne",
+                "connexion",
+            )
+            billing_words = (
+                "bill",
+                "invoice",
+                "payment",
+                "charge",
+                "refund",
+                "facture",
+                "paiement",
+            )
+            if any(w in check_text for w in tech_words) and not any(w in check_text for w in billing_words):
+                queue = "technical_support"
+            else:
+                queue = target_queue or "customer_service"
+        else:
+            queue = target_queue or "customer_service"
         queue_hours = "after_hours_callback_available" if is_after_hours else "open"
 
     state["language"] = resolved_lang

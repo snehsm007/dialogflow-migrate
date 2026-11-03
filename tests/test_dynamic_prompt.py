@@ -693,3 +693,46 @@ def test_detect_active_call_language_french_stt_opening() -> None:
     assert detect_active_call_language({}, req) == "fr-CA"
 
 
+def test_detect_active_call_language_turn1_mixed_garble_turn2_french_recovery() -> None:
+    """Verifies recovery from Turn 1 mixed Hangul+ASCII garble on Turn 2 French."""
+    req = SimpleNamespace(
+        contents=[
+            SimpleNamespace(
+                role="user",
+                parts=[SimpleNamespace(text="많이 percent in 9L percent in 9 내 펑션 바")],
+            ),
+            SimpleNamespace(
+                role="model",
+                parts=[SimpleNamespace(text="Hello, how can I help you?")],
+            ),
+            SimpleNamespace(
+                role="user",
+                parts=[SimpleNamespace(text="Je veux parler un agent.")],
+            ),
+        ]
+    )
+    assert detect_active_call_language({}, req) == "fr-CA"
+
+
+def test_detect_active_call_language_genuine_korean_persists() -> None:
+    """Verifies that genuine multi-turn Korean conversation stays in ko-KR."""
+    req = SimpleNamespace(
+        contents=[
+            SimpleNamespace(
+                role="user",
+                parts=[SimpleNamespace(text="안녕하세요 제 청구서에 문제가 있습니다")],
+            ),
+            SimpleNamespace(
+                role="model",
+                parts=[SimpleNamespace(text="안녕하세요, 어떻게 도와드릴까요?")],
+            ),
+            SimpleNamespace(
+                role="user",
+                parts=[SimpleNamespace(text="상담원 연결해 주세요")],
+            ),
+        ]
+    )
+    assert detect_active_call_language({}, req) == "ko-KR"
+
+
+

@@ -113,4 +113,38 @@ def test_sales_equipment_language_sheet_includes_contract_disclosure() -> None:
     assert "Please note that cancelling or transferring your line" in sheet
 
 
+def test_initiate_number_transfer_new_customer_prospect_submission(monkeypatch) -> None:
+    session = SimpleNamespace(state={})
+    monkeypatch.setattr(tool, "context", session, raising=False)
+    res = tool.initiate_number_transfer(
+        phone_to_transfer="5145550199",
+        current_carrier="Rogers",
+        carrier_account_number="987654321",
+        new_customer=True,
+    )
+    assert res["status"] == "ok"
+    assert res["data"]["mode"] == "transfer_submitted"
+    assert res["data"]["phone_to_transfer"] == "5145550199"
+    assert "port_in_request_id" in res["data"]
+    assert res["data"].get("port_verification_method") == "donor_sms_confirmation"
+
+
+def test_initiate_number_transfer_authenticated_carrier_account_no_pin(monkeypatch) -> None:
+    session = SimpleNamespace(state={"auth_status": "pass", "account_id": "ACC-0199"})
+    monkeypatch.setattr(tool, "context", session, raising=False)
+    res = tool.initiate_number_transfer(
+        phone_to_transfer="514-555-0199",
+        current_carrier="Rogers",
+        carrier_account_number="987654321",
+        port_pin="",
+    )
+    assert res["status"] == "ok"
+    assert res["data"]["status"] == "ok"
+    assert res["data"]["mode"] == "transfer_submitted"
+    assert res["data"]["missing_details"] == []
+    assert res["data"]["port_verification_method"] == "donor_sms_confirmation"
+    assert "port_in_request_id" in res["data"]
+    assert "estimated_completion" in res["data"]
+
+
 
