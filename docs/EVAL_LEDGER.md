@@ -13,6 +13,7 @@
 |---|---|---|---|---|---|---|
 | **v1 (Prod / Baseline)** | `snehsm-FDEBootcamp-CHI-migration` | `projects/fde-bootcamp/locations/us/apps/0cf41d68-5bd0-4fda-b62f-d500cbdca886` | `versions/c9fad922-3080-4397-b78c-45cc5e71648c` (`git-f5c746a`) | `main` @ code `f5c746a` (push log `4032e92`) | `3027b46559602cfc` | Active Academy submission (`73fbf83dd8b943a9bf2745a165ddaaf9`) & full-run baseline |
 | **v2 (Candidate R2)** | `snehsm-FDEBootcamp-CHI-migration-r2` | `projects/fde-bootcamp/locations/us/apps/8a121e2f-8601-4eac-bb77-ccf4f919374e` | `versions/a25187cf-e8ac-4bf1-acc9-e53969119bbe` (`git-96edbf4`) | `fix/mig-round2` @ code `96edbf4` (push log `436f785`, tip `07e5d91`) | `b1fb07c78bebf033` | Isolated sandbox candidate (ADR-33 `tv_streaming`, ADR-34 BAN kwargs, ADR-35 `MOB-STARTER` alias) |
+| **v3 (Candidate R3)** | `snehsm-FDEBootcamp-CHI-migration-r2` | `projects/fde-bootcamp/locations/us/apps/8a121e2f-8601-4eac-bb77-ccf4f919374e` | `versions/02cafd7f-872c-4826-8e25-f27bd2c46e98` (`git-3f8ddb5`) | `fix/mig-round2` @ code `3f8ddb5` (push log `c4441be`) | `38933eeb6d234ba4` | Isolated candidate R3 (ADR-36 unfiled card, ADR-37 prospect port-in & donor SMS, ADR-38 queue routing, ADR-39 mixed ASR recovery) |
 
 ---
 
@@ -31,6 +32,7 @@
 |---|---|---|---|---|---|:-:|:-:|:-:|:-:|---|
 | `smoke-failed7-text-r2` | `2026-11-03T18:39:32Z` | `projects/fde-bootcamp/locations/us/apps/8a121e2f-8601-4eac-bb77-ccf4f919374e/evaluationRuns/5c845c1d-1d51-41d0-bbe5-587df3ce584d` | `fix/mig-round2` — code `96edbf4` (runner `07e5d91`) | `8a121e2f-8601-4eac-bb77-ccf4f919374e` (`git-96edbf4`) | `7` evals × `3` = `21` (`text`: `VE-16,37,39,50,56,57,66`) | **`5/7` (`71.4%`)** | **`6/7` (`85.7%`)** | `18/21` (`85.7%`) | `0` | `VE-37,39,50,56,57` all `3/3` `P P P`; `VE-66` `2/3`; `VE-16` `1/3` (DTMF) |
 | `smoke-failed7-audio-r2` | `2026-11-03T18:39:53Z` | `projects/fde-bootcamp/locations/us/apps/8a121e2f-8601-4eac-bb77-ccf4f919374e/evaluationRuns/3118cb57-389f-429a-bd8b-25f813c0146a` | `fix/mig-round2` — code `96edbf4` (runner `07e5d91`) | `8a121e2f-8601-4eac-bb77-ccf4f919374e` (`git-96edbf4`) | `7` evals × `3` = `21` (`audio`: `VE-16,37,39,50,56,57,66`) | **`5/7` (`71.4%`)** | **`7/7` (`100.0%`)** | `19/21` (`90.5%`) | `0` | `VE-16,37,39,50,56` all `3/3`; `VE-57,66` `2/3`; `100%` majority pass; Gate 1 cleared |
+| `smoke-r3-impact18-audio` | `2026-11-03T20:18:31Z` | `projects/fde-bootcamp/locations/us/apps/8a121e2f-8601-4eac-bb77-ccf4f919374e/evaluationRuns/2064091c-54a8-4fe7-813c-3c88ddd5f751` & `6bd65eed-0a42-4e6b-834a-19e9639c5654` | `fix/mig-round2` — code `3f8ddb5` (log `c4441be`) | `8a121e2f-8601-4eac-bb77-ccf4f919374e` (`git-3f8ddb5` / `02cafd7f`) | `18` evals × `3` = `54` (`audio`: `VE-16,17,18,19,34,35,37,38,39,42,43,46,50,56,57,64,65,66`) | **`15/18` (`83.3%`)** | **`15/18` (`83.3%`)** | `48/54` (`88.9%`) | `0` | 15/18 strict 3/3; all 4 R3 ADR fixes verified 3/3 (VE-37,39,50,56 P P P); VE-57,66 upgraded to 3/3; all 9 regression CUJs 3/3; VE-16,17,43 at 1/3 (0 tool errors) |
 
 ---
 
