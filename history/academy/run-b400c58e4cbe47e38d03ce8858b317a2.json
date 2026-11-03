@@ -1,0 +1,743 @@
+{
+  "run_id": "b400c58e4cbe47e38d03ce8858b317a2",
+  "submission_id": "73fbf83dd8b943a9bf2745a165ddaaf9",
+  "tenant_id": "google.com",
+  "app_name": "projects/fde-bootcamp/locations/us/apps/0cf41d68-5bd0-4fda-b62f-d500cbdca886",
+  "track_id": "fde-bootcamp-chi-dfcx-cxas-agent-migration",
+  "suite_id": "suite-fde-bootcamp-chi-dfcx-cxas-agent-migration",
+  "status": "scored",
+  "score": 0.91,
+  "report": {
+    "score": 0.91,
+    "passed_cases": 91,
+    "total_cases": 100,
+    "duration_s": 6917.8316,
+    "type_results": [
+      {
+        "eval_type": "simulations",
+        "passed": 91,
+        "total": 100,
+        "pass_rate": 0.91,
+        "cases": [
+          {
+            "name": "sim__cancel_service_internet_english",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 120900.0
+          },
+          {
+            "name": "sim__cancel_service_mobility_french",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 150300.0
+          },
+          {
+            "name": "sim__port_out_number_english",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 146400.0
+          },
+          {
+            "name": "sim__cancel_tv_service_english",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 95200.0
+          },
+          {
+            "name": "sim__cancel_home_phone_french",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 176300.0
+          },
+          {
+            "name": "sim__speak_immediate_english",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 33100.0
+          },
+          {
+            "name": "sim__speak_immediate_french",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 55900.0
+          },
+          {
+            "name": "sim__speak_mid_call_billing_english",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 52400.0
+          },
+          {
+            "name": "sim__speak_frustrated_english",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 66600.0
+          },
+          {
+            "name": "sim__speak_mid_call_tech_french",
+            "eval_type": "simulations",
+            "passed": false,
+            "detail": "Expectation not met: The user is successfully transferred to a French-speaking representative mid-call with the French verbatim handoff message",
+            "latency_ms": 159900.0
+          },
+          {
+            "name": "sim__dispute_unrecognized_streaming_charge",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 171200.0
+          },
+          {
+            "name": "sim__dispute_billing_charge_french",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 104200.0
+          },
+          {
+            "name": "sim__dispute_charge_business_account_deflection",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 61300.0
+          },
+          {
+            "name": "sim__dispute_charge_auth_retry",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 181200.0
+          },
+          {
+            "name": "sim__pay_mobility_bill_card_file",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 224800.0
+          },
+          {
+            "name": "sim__pay_bill_french_keypad",
+            "eval_type": "simulations",
+            "passed": false,
+            "detail": "Expectation not met: The system registers the DTMF inputs correctly and confirms the payment in French",
+            "latency_ms": 168500.0
+          },
+          {
+            "name": "sim__pay_past_due_bill_prevent_suspension",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 245300.0
+          },
+          {
+            "name": "sim__pay_bill_declined_card_retry",
+            "eval_type": "simulations",
+            "passed": false,
+            "detail": "Expectation not met: The user is prompted to provide alternative payment details after the first card fails, resulting in a successful transaction",
+            "latency_ms": 163700.0
+          },
+          {
+            "name": "sim__setup_autopay_internet_english",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 144600.0
+          },
+          {
+            "name": "sim__setup_autopay_french",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 266600.0
+          },
+          {
+            "name": "sim__setup_autopay_after_paying_bill",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 307900.0
+          },
+          {
+            "name": "sim__request_credit_outage_days",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 156000.0
+          },
+          {
+            "name": "sim__request_refund_overcharge_french",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 235500.0
+          },
+          {
+            "name": "sim__request_refund_exceeding_threshold_escalation",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 179400.0
+          },
+          {
+            "name": "sim__check_outage_active_postal_code",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 219000.0
+          },
+          {
+            "name": "sim__check_outage_french_active",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 95800.0
+          },
+          {
+            "name": "sim__check_outage_none_found_sms_troubleshoot",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 170500.0
+          },
+          {
+            "name": "sim__check_tech_status_standard",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 236300.0
+          },
+          {
+            "name": "sim__check_ticket_status_french",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 259000.0
+          },
+          {
+            "name": "sim__check_tech_status_reschedule_pivot",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 295500.0
+          },
+          {
+            "name": "sim__check_ticket_status_retry_strikes",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 292400.0
+          },
+          {
+            "name": "sim__check_tech_status_business_deflection",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 64500.0
+          },
+          {
+            "name": "sim__reset_password_standard",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 77800.0
+          },
+          {
+            "name": "sim__reset_password_french",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 96500.0
+          },
+          {
+            "name": "sim__reset_password_wrong_number_retry",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 159200.0
+          },
+          {
+            "name": "sim__reset_password_pivot_billing",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 351100.0
+          },
+          {
+            "name": "sim__reset_password_sms_escalation",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 113100.0
+          },
+          {
+            "name": "sim__manage_mfa_disable",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 473500.0
+          },
+          {
+            "name": "sim__manage_mfa_enable",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 353200.0
+          },
+          {
+            "name": "sim__manage_mfa_french_disable",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 297700.0
+          },
+          {
+            "name": "sim__manage_mfa_auth_failure",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 242200.0
+          },
+          {
+            "name": "sim__manage_mfa_pivot_tech",
+            "eval_type": "simulations",
+            "passed": false,
+            "detail": "Expectation not met: The user successfully enables MFA",
+            "latency_ms": 130800.00000000001
+          },
+          {
+            "name": "sim__report_fraud_standard",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 48300.0
+          },
+          {
+            "name": "sim__report_fraud_french",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 64000.0
+          },
+          {
+            "name": "sim__report_fraud_phishing",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 54700.0
+          },
+          {
+            "name": "sim__report_fraud_mid_call_switch",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 116000.0
+          },
+          {
+            "name": "sim__report_fraud_sim_swap",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 51400.0
+          },
+          {
+            "name": "sim__restore_service_standard",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 158100.0
+          },
+          {
+            "name": "sim__restore_service_french",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 170700.0
+          },
+          {
+            "name": "sim__restore_service_payment_arrangement",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 136000.0
+          },
+          {
+            "name": "sim__restore_service_already_paid",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 143100.0
+          },
+          {
+            "name": "sim__restore_service_business_deflection",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 80600.0
+          },
+          {
+            "name": "sim__troubleshoot_tv_signal",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 180400.0
+          },
+          {
+            "name": "sim__troubleshoot_mobile_service_french",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 126000.0
+          },
+          {
+            "name": "sim__troubleshoot_satellite_tv_error",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 189700.0
+          },
+          {
+            "name": "sim__troubleshoot_mobile_data_slow",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 156000.0
+          },
+          {
+            "name": "sim__troubleshoot_tv_app_freezing",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 258899.99999999997
+          },
+          {
+            "name": "sim__upgrade_mobile_plan_data",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 278300.0
+          },
+          {
+            "name": "sim__upgrade_internet_speed_french",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 243000.0
+          },
+          {
+            "name": "sim__upgrade_tv_package_sports",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 294200.0
+          },
+          {
+            "name": "sim__upgrade_mobile_plan_budget",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 250400.0
+          },
+          {
+            "name": "sim__upgrade_internet_wfh",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 242300.0
+          },
+          {
+            "name": "sim__warranty_replacement_iphone_screen",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 183400.0
+          },
+          {
+            "name": "sim__warranty_replacement_samsung_french",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 409700.0
+          },
+          {
+            "name": "sim__warranty_replacement_pixel_mic",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 278600.0
+          },
+          {
+            "name": "sim__warranty_replacement_check_status",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 332600.0
+          },
+          {
+            "name": "sim__warranty_replacement_swollen_battery_french",
+            "eval_type": "simulations",
+            "passed": false,
+            "detail": "Expectation not met: The user successfully submits an urgent warranty replacement request in French",
+            "latency_ms": 151800.0
+          },
+          {
+            "name": "sim__transfer_number_competitor",
+            "eval_type": "simulations",
+            "passed": false,
+            "detail": "Expectation not met: The user successfully initiates the phone number transfer process",
+            "latency_ms": 210200.0
+          },
+          {
+            "name": "sim__transfer_landline_mobile_french",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "",
+            "latency_ms": 387800.0
+          },
+          {
+            "name": "sim__transfer_family_member_number",
+            "eval_type": "simulations",
+            "passed": false,
+            "detail": "Expectation not met: The user successfully initiates the transfer of the external number to their account",
+            "latency_ms": 181500.0
+          },
+          {
+            "name": "Secret Case #1",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "Details hidden for secret evaluation case.",
+            "latency_ms": null
+          },
+          {
+            "name": "Secret Case #2",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "Details hidden for secret evaluation case.",
+            "latency_ms": null
+          },
+          {
+            "name": "Secret Case #3",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "Details hidden for secret evaluation case.",
+            "latency_ms": null
+          },
+          {
+            "name": "Secret Case #4",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "Details hidden for secret evaluation case.",
+            "latency_ms": null
+          },
+          {
+            "name": "Secret Case #5",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "Details hidden for secret evaluation case.",
+            "latency_ms": null
+          },
+          {
+            "name": "Secret Case #6",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "Details hidden for secret evaluation case.",
+            "latency_ms": null
+          },
+          {
+            "name": "Secret Case #7",
+            "eval_type": "simulations",
+            "passed": false,
+            "detail": "Details hidden for secret evaluation case.",
+            "latency_ms": null
+          },
+          {
+            "name": "Secret Case #8",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "Details hidden for secret evaluation case.",
+            "latency_ms": null
+          },
+          {
+            "name": "Secret Case #9",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "Details hidden for secret evaluation case.",
+            "latency_ms": null
+          },
+          {
+            "name": "Secret Case #10",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "Details hidden for secret evaluation case.",
+            "latency_ms": null
+          },
+          {
+            "name": "Secret Case #11",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "Details hidden for secret evaluation case.",
+            "latency_ms": null
+          },
+          {
+            "name": "Secret Case #12",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "Details hidden for secret evaluation case.",
+            "latency_ms": null
+          },
+          {
+            "name": "Secret Case #13",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "Details hidden for secret evaluation case.",
+            "latency_ms": null
+          },
+          {
+            "name": "Secret Case #14",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "Details hidden for secret evaluation case.",
+            "latency_ms": null
+          },
+          {
+            "name": "Secret Case #15",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "Details hidden for secret evaluation case.",
+            "latency_ms": null
+          },
+          {
+            "name": "Secret Case #16",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "Details hidden for secret evaluation case.",
+            "latency_ms": null
+          },
+          {
+            "name": "Secret Case #17",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "Details hidden for secret evaluation case.",
+            "latency_ms": null
+          },
+          {
+            "name": "Secret Case #18",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "Details hidden for secret evaluation case.",
+            "latency_ms": null
+          },
+          {
+            "name": "Secret Case #19",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "Details hidden for secret evaluation case.",
+            "latency_ms": null
+          },
+          {
+            "name": "Secret Case #20",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "Details hidden for secret evaluation case.",
+            "latency_ms": null
+          },
+          {
+            "name": "Secret Case #21",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "Details hidden for secret evaluation case.",
+            "latency_ms": null
+          },
+          {
+            "name": "Secret Case #22",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "Details hidden for secret evaluation case.",
+            "latency_ms": null
+          },
+          {
+            "name": "Secret Case #23",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "Details hidden for secret evaluation case.",
+            "latency_ms": null
+          },
+          {
+            "name": "Secret Case #24",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "Details hidden for secret evaluation case.",
+            "latency_ms": null
+          },
+          {
+            "name": "Secret Case #25",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "Details hidden for secret evaluation case.",
+            "latency_ms": null
+          },
+          {
+            "name": "Secret Case #26",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "Details hidden for secret evaluation case.",
+            "latency_ms": null
+          },
+          {
+            "name": "Secret Case #27",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "Details hidden for secret evaluation case.",
+            "latency_ms": null
+          },
+          {
+            "name": "Secret Case #28",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "Details hidden for secret evaluation case.",
+            "latency_ms": null
+          },
+          {
+            "name": "Secret Case #29",
+            "eval_type": "simulations",
+            "passed": true,
+            "detail": "Details hidden for secret evaluation case.",
+            "latency_ms": null
+          },
+          {
+            "name": "Secret Case #30",
+            "eval_type": "simulations",
+            "passed": false,
+            "detail": "Details hidden for secret evaluation case.",
+            "latency_ms": null
+          }
+        ]
+      }
+    ]
+  },
+  "progress": {
+    "total": 100,
+    "completed": 100,
+    "passed": 91,
+    "failed": 9,
+    "by_type": {},
+    "recent": []
+  },
+  "error": null,
+  "created_by": "snehsm@google.com",
+  "created_at": "2026-11-03T16:19:48.691741+00:00",
+  "updated_at": "2026-11-03T18:16:44.911335+00:00",
+  "started_at": "2026-11-03T16:19:48.691698+00:00",
+  "finished_at": "2026-11-03T18:16:44.881995+00:00",
+  "duration_s": 6917.8316,
+  "prior_run_id": null,
+  "retry_mode": null
+}
