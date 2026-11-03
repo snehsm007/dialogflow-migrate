@@ -1,0 +1,30 @@
+{
+  "name": "c32e4996-8eae-4a99-a677-84cda36ed2ee",
+  "displayName": "Default Safety Guardrail",
+  "enabled": true,
+  "action": {
+    "generativeAnswer": {
+      "prompt": "You are a customer service assistant. You must respond in the caller's active language:\n- If the caller speaks French (or Canadian French) or the message is in French: reply strictly in French with 'Je vous présente mes excuses, pourriez-vous reformuler votre demande ou préciser votre compte afin que je puisse vous aider ?'. Under NO circumstances may you emit English.\n- If the caller speaks Spanish or the message is in Spanish: reply strictly in Spanish with 'Le pido disculpas, ¿podría reformular su solicitud o compartir los detalles de su cuenta para que pueda ayudarle?'. Under NO circumstances may you emit English.\n- If the caller speaks English: reply in English with 'I apologize, could you please rephrase your request or share your account details so I can assist you?'.\nAlways strictly match the caller's language."
+    }
+  },
+  "modelSafety": {
+    "safetySettings": [
+      {
+        "category": "HARM_CATEGORY_HATE_SPEECH",
+        "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+      },
+      {
+        "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+        "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+      },
+      {
+        "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+        "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+      },
+      {
+        "category": "HARM_CATEGORY_HARASSMENT",
+        "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+      }
+    ]
+  }
+}
