@@ -318,7 +318,7 @@ bench-dry: need-app ## Print the plan for TARGETS (or all) without cloud calls
 
 bench-smoke: need-app preflight ## Gate 1: TARGETS=VE-01,VE-02 x 3 repeats, go/no-go verdict (measured median about 6 min)
 	@test -n "$(TARGETS)" || (echo "Usage: make bench-smoke ENV=staging TARGETS=VE-01,VE-02" >&2; exit 1)
-	$(RUN_EVALS) --smoke $(EVAL_COMMON) --modality $(SMOKE_MODALITY) --targets "$(TARGETS)" --label smoke-$(SHA7)
+	$(RUN_EVALS) --smoke $(EVAL_COMMON) --modality $(SMOKE_MODALITY) --targets "$(TARGETS)" --label $(if $(filter-out eval-%,$(RUN_ID)),$(RUN_ID),smoke-$(SHA7))
 
 bench-unstable: need-app preflight ## Gate 2: $(UNSTABLE_SET) x 5 repeats (~15-25 min)
 	@test -s "$(UNSTABLE_SET)" && grep -v '^[[:space:]]*\(#\|$$\)' "$(UNSTABLE_SET)" | grep -q . || (echo "ERROR: $(UNSTABLE_SET) is missing or has no uncommented eval IDs (one eval id or display name per line)" >&2; exit 1)
