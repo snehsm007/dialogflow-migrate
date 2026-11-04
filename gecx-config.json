@@ -1,0 +1,9 @@
+{
+  "gcp_project_id": "fde-bootcamp",
+  "location": "us",
+  "deployed_app_id": "8a121e2f-8601-4eac-bb77-ccf4f919374e",
+  "app_name": "snehsm-FDEBootcamp-CHI-migration",
+  "app_dir": "cxas_app",
+  "modality": "voice",
+  "default_channel": "audio"
+}
