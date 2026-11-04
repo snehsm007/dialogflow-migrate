@@ -55,11 +55,11 @@
   },
   "variableDeclarations": [
     {
-      "name": "new_customer",
-      "description": "True if the caller is a prospective customer without an existing account.",
+      "name": "card_not_on_file_prompted",
+      "description": "Last 4 digits of unlisted card caller was prompted about for one-time payment confirmation.",
       "schema": {
-        "type": "BOOLEAN",
-        "default": false,
+        "type": "STRING",
+        "default": "",
         "required": []
       }
     },
@@ -957,6 +957,7 @@
   ],
   "guardrails": [
     "Default Safety Guardrail",
-    "Default Prompt Guardrail"
+    "Default Prompt Guardrail",
+    "Telco Deterministic Content Guardrail"
   ]
 }

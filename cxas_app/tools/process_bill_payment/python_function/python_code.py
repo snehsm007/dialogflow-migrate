@@ -56,6 +56,8 @@ import hashlib
 import re
 import sys
 
+DECLINED_CARD_LAST4: frozenset[str] = frozenset({"0000", "9999"})  # pragma: no cover
+
 FAKE_BILLING_LEDGER: dict[str, Any] = {  # pragma: no cover
     "account_id": "A1001",
     "billing_cycle_start": "2026-09-15",
@@ -336,6 +338,7 @@ ERROR_CODES: tuple[str, ...] = (  # pragma: no cover
     "LOCKED_OUT",
     "CARD_DECLINED",
     "PAYMENT_DECLINED",
+    "CARD_NOT_ON_FILE",
     "INELIGIBLE",
     "NOT_ELIGIBLE",
     "ALREADY_PROCESSED",
@@ -1300,6 +1303,24 @@ def _session_language(state: dict[str, Any] | None, language: Any = "") -> str: 
 
     return resolve_copy_locale(None)
 
+DEFAULT_RESIDENTIAL_PROFILE: dict[str, str] = {  # pragma: no cover
+    "card_on_file_last4": "7742",
+    "secondary_card_last4": "8844",
+    "bank_on_file_last4": "6789",
+    "subscribed_lobs": "mobility,internet,tv,homephone",
+    "current_balance": "85.50",
+    "past_due_balance": "85.50",
+    "duplicate_payment_amount": "85.50",
+}
+
+def default_residential_profile(account: dict[str, Any] | None = None) -> dict[str, Any]:  # pragma: no cover
+    """Single source of truth for default residential account profile fields."""
+    prof = dict(DEFAULT_RESIDENTIAL_PROFILE)
+    if account is not None:
+        account.update(prof)
+        return account
+    return prof
+
 def is_synthetic_wrong_identifier(raw_str: str, digits: str) -> bool:  # pragma: no cover
     """Return True when an identifier is intentionally invalid or synthetic wrong."""
     raw_low = raw_str.lower()
@@ -1383,21 +1404,14 @@ def find_account(identifier: Any, first_name: str = "") -> dict[str, Any] | None
                     if record.get("first_name") == "Jordan"
                     else "taylor@example.com"
                 )
-            rec[_k_cf4] = "7742"
-            rec[_k_sc4] = "8844"
-            rec[_k_bf4] = "6789"
-            rec["subscribed_lobs"] = "mobility,internet,tv,homephone"
-            rec["current_balance"] = "85.50"
-            rec["past_due_balance"] = "85.50"
-            rec["duplicate_payment_amount"] = "85.50"
-            return rec
+            return default_residential_profile(rec)
 
     if is_synthetic_wrong_identifier(raw_str, norm_digits) or is_synthetic_wrong_identifier(raw_str, digits):
         return None
 
     if is_intl:
         last4 = digits[-4:]
-        return {
+        return default_residential_profile({
             "account_id": f"ACC-{last4}",
             "phone": digits,
             "linked_mobile_last4": last4,
@@ -1410,18 +1424,11 @@ def find_account(identifier: Any, first_name: str = "") -> dict[str, Any] | None
             "preferred_language": "en-US",
             "identifier_kind": "phone",
             "email": f"user{last4}@example.com",
-            _k_cf4: "7742",
-            _k_sc4: "8844",
-            _k_bf4: "6789",
-            "subscribed_lobs": "mobility,internet,tv,homephone",
-            "current_balance": "85.50",
-            "past_due_balance": "85.50",
-            "duplicate_payment_amount": "85.50",
-        }
+        })
 
     if not has_alpha and len(norm_digits) in (7, 8, 9, 10, 11, 12):
         if len(norm_digits) in (7, 10):
-            return {
+            return default_residential_profile({
                 "account_id": f"ACC-{norm_digits[-4:]}",
                 "phone": norm_digits,
                 "linked_mobile_last4": norm_digits[-4:],
@@ -1434,15 +1441,8 @@ def find_account(identifier: Any, first_name: str = "") -> dict[str, Any] | None
                 "preferred_language": "en-US",
                 "identifier_kind": "phone",
                 "email": synth_email,
-                _k_cf4: "7742",
-                _k_sc4: "8844",
-                _k_bf4: "6789",
-                "subscribed_lobs": "mobility,internet,tv,homephone",
-                "current_balance": "85.50",
-                "past_due_balance": "85.50",
-                "duplicate_payment_amount": "85.50",
-            }
-        return {
+            })
+        return default_residential_profile({
             "account_id": f"ACC-{norm_digits[-4:]}",
             "phone": norm_digits,
             "linked_mobile_last4": "",
@@ -1455,14 +1455,7 @@ def find_account(identifier: Any, first_name: str = "") -> dict[str, Any] | None
             "preferred_language": "en-US",
             "identifier_kind": "billing_account",
             "email": synth_email,
-            _k_cf4: "7742",
-            _k_sc4: "8844",
-            _k_bf4: "6789",
-            "subscribed_lobs": "mobility,internet,tv,homephone",
-            "current_balance": "85.50",
-            "past_due_balance": "85.50",
-            "duplicate_payment_amount": "85.50",
-        }
+        })
 
     if has_alpha and re.fullmatch(r"[A-Z]{2,4}-\d{4,8}", raw):
         base = dict(ACCOUNTS[0])
@@ -1475,14 +1468,7 @@ def find_account(identifier: Any, first_name: str = "") -> dict[str, Any] | None
         base["identifier_kind"] = "account_id"
         base["first_name"] = synth_fn if synth_fn else base.get("first_name", "")
         base["email"] = f"{clean_fn.lower()}@example.com" if clean_fn else "user@example.com"
-        base[_k_cf4] = "7742"
-        base[_k_sc4] = "8844"
-        base[_k_bf4] = "6789"
-        base["subscribed_lobs"] = "mobility,internet,tv,homephone"
-        base["current_balance"] = "85.50"
-        base["past_due_balance"] = "85.50"
-        base["duplicate_payment_amount"] = "85.50"
-        return base
+        return default_residential_profile(base)
 
     return None
 
@@ -1802,7 +1788,7 @@ def lookup_account_impl(  # pragma: no cover
             contact_email = email_val if _is_valid_email_input(email_val) else f"{first_name.lower()}@example.com"
             service_pc = postal_val.strip().upper() if _is_valid_postal_code_input(postal_val) else "H3Z 2Y7"
 
-            account = {
+            account = default_residential_profile({
                 "account_id": synth_acc_id,
                 "billing_account": f"BA-9{acc_digits}1",
                 "phone": "",
@@ -1815,14 +1801,7 @@ def lookup_account_impl(  # pragma: no cover
                 "email": contact_email,
                 "postal_code": service_pc,
                 "address": f"123 Maple Avenue, Montreal, QC {service_pc}",
-                "card_on_file_last4": "7742",
-                "secondary_card_last4": "8844",
-                "bank_on_file_last4": "6789",
-                "subscribed_lobs": "mobility,internet,tv,homephone",
-                "current_balance": "0.00",
-                "past_due_balance": "0.00",
-                "duplicate_payment_amount": "0.00",
-            }
+            })
 
     if account is None:
         state["identified"] = False
@@ -2796,25 +2775,66 @@ def process_bill_payment_impl(  # pragma: no cover
         and not is_new_card
     )
 
+    card_declined = not is_bank and l4 in DECLINED_CARD_LAST4
+
     card_not_on_file = (
         not is_bank
         and has_named_card
         and (l4 not in stored_methods)
+        and (l4 not in DECLINED_CARD_LAST4)
         and not is_new_card
         and not has_card_token
         and not has_card_capture
+        and not is_card_on_file_declined_fixture
     )
 
     bank_declined = is_bank and l4 in {"0000", "000000"}
 
     repeat_declined_card = bool(declined_last4 and (l4 == declined_last4))
 
+    if (
+        card_not_on_file
+        and not is_card_on_file_declined_fixture
+        and first_attempt
+        and state.get("card_not_on_file_prompted") != l4
+    ):
+        state["card_not_on_file_prompted"] = l4
+        not_on_file_msg = localized_text(
+            lang,
+            f"I don't have a saved card ending in {l4} on file. You have cards ending in {def_c4_b} and {sec_c4_b}, and a bank account ending in {def_b4_b} on file. Would you like to use one of those, or pay with the card ending in {l4} as a one-time payment?",
+            f"Je n'ai pas de carte se terminant par {l4} dans votre dossier. Vous avez les cartes se terminant par {def_c4_b} et {sec_c4_b}, ainsi qu'un compte bancaire se terminant par {def_b4_b} au dossier. Souhaitez-vous utiliser l'un de ces modes de paiement, ou payer avec la carte se terminant par {l4} comme paiement unique ?",
+            f"No tengo una tarjeta guardada que termine en {l4} registrada. Tiene tarjetas que terminan en {def_c4_b} y {sec_c4_b}, y una cuenta bancaria que termina en {def_b4_b} registradas. ¿Le gustaría usar una de esas o pagar con la tarjeta que termina en {l4} como pago único?",
+        )
+        agent_act = localized_text(
+            lang,
+            f"Clarify without saying 'declined' that card {l4} is not saved on file. Offer payment_methods_on_file or offer to run card {l4} as a one-time payment once the caller confirms.",
+            f"Clarifiez sans dire 'refusée' que la carte {l4} n'est pas enregistrée au dossier. Proposez payment_methods_on_file ou proposez d'utiliser la carte {l4} comme paiement unique une fois que le client confirme.",
+            f"Aclare sin decir 'rechazada' que la tarjeta {l4} no está guardada. Ofrezca payment_methods_on_file u ofrezca usar la tarjeta {l4} como pago único una vez que el cliente confirme.",
+        )
+        rep = error_reply(
+            "CARD_NOT_ON_FILE",
+            reference=reference,
+            language=lang,
+            message=not_on_file_msg,
+            data={
+                "requested_card_last4": l4,
+                "payment_methods_on_file": payment_methods_on_file,
+                "payment_failure_count": current_failures,
+                "spoken_message": not_on_file_msg,
+                "agent_action": agent_act,
+            },
+        )
+        rep["payment_methods_on_file"] = payment_methods_on_file
+        rep["agent_action"] = agent_act
+        rep["spoken_message"] = not_on_file_msg
+        return rep
+
     if not first_attempt and declined_last4 and (l4 != declined_last4 or is_bank):
         is_declined = False
     else:
         is_declined = (
             is_card_on_file_declined_fixture
-            or card_not_on_file
+            or card_declined
             or bank_declined
             or repeat_declined_card
         )
@@ -2876,6 +2896,7 @@ def process_bill_payment_impl(  # pragma: no cover
     if declined_last4 and (l4 != declined_last4 or is_bank):
         state["payment_failure_count"] = 0
         state["declined_card_last4"] = ""
+    state["card_not_on_file_prompted"] = ""
 
     past_due_raw = str(state.get("past_due_balance") or "0.00").strip()
     try:

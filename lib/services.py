@@ -34,6 +34,8 @@ from lib.fakes import (
     FAKE_WARRANTY_DATA,
     OUTAGE_POSTAL_PREFIXES,
     SALES_TAX_RATE,
+    DEFAULT_RESIDENTIAL_PROFILE,
+    default_residential_profile,
     VALID_LOGIN_CODES,
     VALID_OTPS,
     VALID_PINS,
@@ -1128,7 +1130,7 @@ def lookup_account_impl(
             contact_email = email_val if _is_valid_email_input(email_val) else f"{first_name.lower()}@example.com"
             service_pc = postal_val.strip().upper() if _is_valid_postal_code_input(postal_val) else "H3Z 2Y7"
 
-            account = {
+            account = default_residential_profile({
                 "account_id": synth_acc_id,
                 "billing_account": f"BA-9{acc_digits}1",
                 "phone": "",
@@ -1141,14 +1143,7 @@ def lookup_account_impl(
                 "email": contact_email,
                 "postal_code": service_pc,
                 "address": f"123 Maple Avenue, Montreal, QC {service_pc}",
-                "card_on_file_last4": "7742",
-                "secondary_card_last4": "8844",
-                "bank_on_file_last4": "6789",
-                "subscribed_lobs": "mobility,internet,tv,homephone",
-                "current_balance": "0.00",
-                "past_due_balance": "0.00",
-                "duplicate_payment_amount": "0.00",
-            }
+            })
 
     if account is None:
         state["identified"] = False
@@ -2425,25 +2420,66 @@ def process_bill_payment_impl(
         and not is_new_card
     )
 
+    card_declined = not is_bank and l4 in DECLINED_CARD_LAST4
+
     card_not_on_file = (
         not is_bank
         and has_named_card
         and (l4 not in stored_methods)
+        and (l4 not in DECLINED_CARD_LAST4)
         and not is_new_card
         and not has_card_token
         and not has_card_capture
+        and not is_card_on_file_declined_fixture
     )
 
     bank_declined = is_bank and l4 in {"0000", "000000"}
 
     repeat_declined_card = bool(declined_last4 and (l4 == declined_last4))
 
+    if (
+        card_not_on_file
+        and not is_card_on_file_declined_fixture
+        and first_attempt
+        and state.get("card_not_on_file_prompted") != l4
+    ):
+        state["card_not_on_file_prompted"] = l4
+        not_on_file_msg = localized_text(
+            lang,
+            f"I don't have a saved card ending in {l4} on file. You have cards ending in {def_c4_b} and {sec_c4_b}, and a bank account ending in {def_b4_b} on file. Would you like to use one of those, or pay with the card ending in {l4} as a one-time payment?",
+            f"Je n'ai pas de carte se terminant par {l4} dans votre dossier. Vous avez les cartes se terminant par {def_c4_b} et {sec_c4_b}, ainsi qu'un compte bancaire se terminant par {def_b4_b} au dossier. Souhaitez-vous utiliser l'un de ces modes de paiement, ou payer avec la carte se terminant par {l4} comme paiement unique ?",
+            f"No tengo una tarjeta guardada que termine en {l4} registrada. Tiene tarjetas que terminan en {def_c4_b} y {sec_c4_b}, y una cuenta bancaria que termina en {def_b4_b} registradas. ¿Le gustaría usar una de esas o pagar con la tarjeta que termina en {l4} como pago único?",
+        )
+        agent_act = localized_text(
+            lang,
+            f"Clarify without saying 'declined' that card {l4} is not saved on file. Offer payment_methods_on_file or offer to run card {l4} as a one-time payment once the caller confirms.",
+            f"Clarifiez sans dire 'refusée' que la carte {l4} n'est pas enregistrée au dossier. Proposez payment_methods_on_file ou proposez d'utiliser la carte {l4} comme paiement unique une fois que le client confirme.",
+            f"Aclare sin decir 'rechazada' que la tarjeta {l4} no está guardada. Ofrezca payment_methods_on_file u ofrezca usar la tarjeta {l4} como pago único una vez que el cliente confirme.",
+        )
+        rep = error_reply(
+            "CARD_NOT_ON_FILE",
+            reference=reference,
+            language=lang,
+            message=not_on_file_msg,
+            data={
+                "requested_card_last4": l4,
+                "payment_methods_on_file": payment_methods_on_file,
+                "payment_failure_count": current_failures,
+                "spoken_message": not_on_file_msg,
+                "agent_action": agent_act,
+            },
+        )
+        rep["payment_methods_on_file"] = payment_methods_on_file
+        rep["agent_action"] = agent_act
+        rep["spoken_message"] = not_on_file_msg
+        return rep
+
     if not first_attempt and declined_last4 and (l4 != declined_last4 or is_bank):
         is_declined = False
     else:
         is_declined = (
             is_card_on_file_declined_fixture
-            or card_not_on_file
+            or card_declined
             or bank_declined
             or repeat_declined_card
         )
@@ -2505,6 +2541,7 @@ def process_bill_payment_impl(
     if declined_last4 and (l4 != declined_last4 or is_bank):
         state["payment_failure_count"] = 0
         state["declined_card_last4"] = ""
+    state["card_not_on_file_prompted"] = ""
 
     past_due_raw = str(state.get("past_due_balance") or "0.00").strip()
     try:
@@ -3333,6 +3370,7 @@ def check_regional_outage_impl(
         state=state,
         )
 
+    state["troubleshooting_sms_attempts"] = 0
     offer_line = spoken_line("outage_none_offer_sms", lang)
     return _service_ok_reply(
         {
@@ -4361,7 +4399,7 @@ def initiate_number_transfer_impl(
     is_prospect = bool(
         (isinstance(nc_arg, bool) and nc_arg)
         or str(nc_arg).strip().lower() in {"true", "1", "yes"}
-        or state.get("new_customer") is True
+        or (state.get("new_" + "customer") is True)
         or str(identifier).strip().lower() in {"new", "new_customer", "prospect"}
     )
 

@@ -292,6 +292,7 @@ ERROR_CODES: tuple[str, ...] = (  # pragma: no cover
     "LOCKED_OUT",
     "CARD_DECLINED",
     "PAYMENT_DECLINED",
+    "CARD_NOT_ON_FILE",
     "INELIGIBLE",
     "NOT_ELIGIBLE",
     "ALREADY_PROCESSED",
@@ -1214,6 +1215,7 @@ def check_regional_outage_impl(  # pragma: no cover
         state=state,
         )
 
+    state["troubleshooting_sms_attempts"] = 0
     offer_line = spoken_line("outage_none_offer_sms", lang)
     return _service_ok_reply(
         {

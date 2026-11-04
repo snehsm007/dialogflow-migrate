@@ -137,3 +137,42 @@ def test_run_troubleshooting_and_sms_satellite_receiver_error() -> None:
     assert any("satellite dish" in s.lower() for s in steps)
 
 
+def test_negative_outage_check_allows_offered_sms_guide_after_prior_diagnostic() -> None:
+    from lib.services import check_regional_outage_impl, run_troubleshooting_and_sms_impl
+
+    state: dict[str, Any] = {
+        "account_id": "ACC-1001",
+        "auth_status": "pass",
+        "phone_last4": "0199",
+    }
+    # 1. First diagnostic dispatches SMS guide and sets troubleshooting_sms_attempts=1
+    r1 = run_troubleshooting_and_sms_impl(
+        service_type="internet",
+        send_sms_guide=True,
+        state=state,
+    )
+    assert r1["status"] == "ok"
+    assert r1["data"]["sms_guide_sent"] is True
+    assert state.get("troubleshooting_sms_attempts") == 1
+
+    # 2. Negative outage check resets troubleshooting_sms_attempts to 0
+    outage_rep = check_regional_outage_impl(
+        postal_code="90210",
+        subscribe_sms=False,
+        state=state,
+    )
+    assert outage_rep["status"] == "ok"
+    assert outage_rep["data"]["outage_active"] is False
+    assert state.get("troubleshooting_sms_attempts") == 0
+
+    # 3. Caller accepts offered SMS troubleshooting guide: guide sends successfully again!
+    r2 = run_troubleshooting_and_sms_impl(
+        service_type="internet",
+        send_sms_guide=True,
+        state=state,
+    )
+    assert r2["status"] == "ok"
+    assert r2["data"]["sms_guide_sent"] is True
+
+
+
